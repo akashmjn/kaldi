@@ -16,7 +16,7 @@
 mic=ihm
 
 # Train systems,
-nj=30 # number of parallel jobs,
+nj=12 # number of parallel jobs,
 stage=1
 . utils/parse_options.sh
 
@@ -39,6 +39,7 @@ LM=$final_lm.pr1-7
 
 # Download AMI corpus, You need around 130GB of free space to get whole data ihm+mdm,
 if [ $stage -le 0 ]; then
+  printf "\n================ Stage 0 =================\n\n"
   if [ -d $AMI_DIR ] && ! touch $AMI_DIR/.foo 2>/dev/null; then
     echo "$0: directory $AMI_DIR seems to exist and not be owned by you."
     echo " ... Assuming the data does not need to be downloaded.  Please use --stage 1 or more."
@@ -55,6 +56,7 @@ fi
 if [ "$base_mic" == "mdm" ]; then
   PROCESSED_AMI_DIR=$AMI_DIR/beamformed
   if [ $stage -le 1 ]; then
+    printf "\n================ Stage 1 =================\n\n"
     # for MDM data, do beamforming
     ! hash BeamformIt && echo "Missing BeamformIt, run 'cd ../../../tools/; extras/install_beamformit.sh; cd -;'" && exit 1
     local/ami_beamform.sh --cmd "$train_cmd" --nj 20 $nmics $AMI_DIR $PROCESSED_AMI_DIR
@@ -65,12 +67,14 @@ fi
 
 # Prepare original data directories data/ihm/train_orig, etc.
 if [ $stage -le 2 ]; then
+  printf "\n================ Stage 2 =================\n\n"
   local/ami_${base_mic}_data_prep.sh $PROCESSED_AMI_DIR $mic
   local/ami_${base_mic}_scoring_data_prep.sh $PROCESSED_AMI_DIR $mic dev
   local/ami_${base_mic}_scoring_data_prep.sh $PROCESSED_AMI_DIR $mic eval
 fi
 
 if [ $stage -le 3 ]; then
+  printf "\n================ Stage 3 =================\n\n"
   for dset in train dev eval; do
     # this splits up the speakers (which for sdm and mdm just correspond
     # to recordings) into 30-second chunks.  It's like a very brain-dead form
@@ -90,6 +94,7 @@ fi
 
 # Feature extraction,
 if [ $stage -le 4 ]; then
+  printf "\n================ Stage 4 =================\n\n"
   for dset in train dev eval; do
     steps/make_mfcc.sh --nj 15 --cmd "$train_cmd" data/$mic/$dset
     steps/compute_cmvn_stats.sh data/$mic/$dset
@@ -99,6 +104,7 @@ fi
 
 # monophone training
 if [ $stage -le 5 ]; then
+  printf "\n================ Stage 5 =================\n\n"
   # Full set 77h, reduced set 10.8h,
   utils/subset_data_dir.sh data/$mic/train 15000 data/$mic/train_15k
 
@@ -110,6 +116,7 @@ fi
 
 # context-dep. training with delta features.
 if [ $stage -le 6 ]; then
+  printf "\n================ Stage 6 =================\n\n"
   steps/train_deltas.sh --cmd "$train_cmd" \
     5000 80000 data/$mic/train data/lang exp/$mic/mono_ali exp/$mic/tri1
   steps/align_si.sh --nj $nj --cmd "$train_cmd" \
@@ -117,6 +124,7 @@ if [ $stage -le 6 ]; then
 fi
 
 if [ $stage -le 7 ]; then
+  printf "\n================ Stage 7 =================\n\n"
   # LDA_MLLT
   steps/train_lda_mllt.sh --cmd "$train_cmd" \
     --splice-opts "--left-context=3 --right-context=3" \
@@ -135,6 +143,7 @@ fi
 
 
 if [ $stage -le 8 ]; then
+  printf "\n================ Stage 8 =================\n\n"
   # LDA+MLLT+SAT
   steps/train_sat.sh --cmd "$train_cmd" \
     5000 80000 data/$mic/train data/lang exp/$mic/tri2_ali exp/$mic/tri3
@@ -143,6 +152,7 @@ if [ $stage -le 8 ]; then
 fi
 
 if [ $stage -le 9 ]; then
+  printf "\n================ Stage 9 =================\n\n"
   # Decode the fMLLR system.
   graph_dir=exp/$mic/tri3/graph_${LM}
   $decode_cmd --mem 4G $graph_dir/mkgraph.log \
@@ -154,22 +164,25 @@ if [ $stage -le 9 ]; then
 fi
 
 if [ $stage -le 10 ]; then
+  printf "\n================ Stage 10 =================\n\n"
   # The following script cleans the data and produces cleaned data
   # in data/$mic/train_cleaned, and a corresponding system
   # in exp/$mic/tri3_cleaned.  It also decodes.
   #
   # Note: local/run_cleanup_segmentation.sh defaults to using 50 jobs,
   # you can reduce it using the --nj option if you want.
-  local/run_cleanup_segmentation.sh --mic $mic
+  #local/run_cleanup_segmentation.sh --nj 12 --mic $mic
 fi
 
 if [ $stage -le 11 ]; then
+  printf "\n================ Stage 11 =================\n\n"
   ali_opt=
   [ "$mic" != "ihm" ] && ali_opt="--use-ihm-ali true"
   local/chain/run_tdnn.sh $ali_opt --mic $mic
 fi
 
 if [ $stage -le 12 ]; then
+  printf "\n================ Stage 12 =================\n\n"
 #  the following shows how you would run the nnet3 system; we comment it out
 #  because it's not as good as the chain system.
 #  ali_opt=
