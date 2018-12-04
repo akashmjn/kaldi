@@ -16,7 +16,7 @@
 mic=ihm
 
 # Train systems,
-nj=12 # number of parallel jobs,
+nj=30 # number of parallel jobs,
 stage=1
 . utils/parse_options.sh
 
@@ -59,7 +59,7 @@ if [ "$base_mic" == "mdm" ]; then
     printf "\n================ Stage 1 =================\n\n"
     # for MDM data, do beamforming
     ! hash BeamformIt && echo "Missing BeamformIt, run 'cd ../../../tools/; extras/install_beamformit.sh; cd -;'" && exit 1
-    local/ami_beamform.sh --cmd "$train_cmd" --nj 20 $nmics $AMI_DIR $PROCESSED_AMI_DIR
+    local/ami_beamform.sh --cmd "$train_cmd" --nj $nj $nmics $AMI_DIR $PROCESSED_AMI_DIR
   fi
 else
   PROCESSED_AMI_DIR=$AMI_DIR
