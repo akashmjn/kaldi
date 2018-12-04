@@ -16,7 +16,7 @@
 mic=ihm
 
 # Train systems,
-nj=30 # number of parallel jobs,
+nj=12 # number of parallel jobs,
 stage=1
 . utils/parse_options.sh
 
