@@ -18,17 +18,20 @@
 set -e -o pipefail
 # First the options that are passed through to run_ivector_common.sh
 # (some of which are also used in this script directly).
-stage=0
+stage=3
 mic=ihm
-nj=30
+nj=12
 min_seg_len=1.55
 use_ihm_ali=false
-train_set=train_cleaned
-gmm=tri3_cleaned  # the gmm for the target data
+#train_set=train_cleaned
+#gmm=tri3_cleaned  # the gmm for the target data
+train_set=train
+gmm=tri3 # the gmm for the target data
 ihm_gmm=tri3  # the gmm for the IHM system (if --use-ihm-ali true).
 num_threads_ubm=32
 ivector_transform_type=pca
-nnet3_affix=_cleaned  # cleanup affix for nnet3 and chain dirs, e.g. _cleaned
+#nnet3_affix=_cleaned  # cleanup affix for nnet3 and chain dirs, e.g. _cleaned
+nnet3_affix=  # cleanup affix for nnet3 and chain dirs, e.g. _cleaned
 num_epochs=9
 remove_egs=true
 
@@ -143,7 +146,7 @@ fi
 if [ $stage -le 13 ]; then
   # Get the alignments as lattices (gives the chain training more freedom).
   # use the same num-jobs as the alignments
-  steps/align_fmllr_lats.sh --nj 100 --cmd "$train_cmd" ${lores_train_data_dir} \
+  steps/align_fmllr_lats.sh --nj $nj --cmd "$train_cmd" ${lores_train_data_dir} \
     data/lang $gmm_dir $lat_dir
   rm $lat_dir/fsts.*.gz # save space
 fi
