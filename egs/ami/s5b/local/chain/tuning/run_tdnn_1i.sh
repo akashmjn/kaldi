@@ -109,6 +109,7 @@ done
 
 
 if [ $stage -le 11 ]; then
+  printf "\n================ Stage 11 =================\n\n"
   if [ -f $ali_dir/ali.1.gz ]; then
     echo "$0: alignments in $ali_dir appear to already exist.  Please either remove them "
     echo " ... or use a later --stage option."
@@ -122,6 +123,7 @@ fi
 [ ! -f $ali_dir/ali.1.gz ] && echo  "$0: expected $ali_dir/ali.1.gz to exist" && exit 1
 
 if [ $stage -le 12 ]; then
+  printf "\n================ Stage 12 =================\n\n"
   echo "$0: creating lang directory with one state per phone."
   # Create a version of the lang/ directory that has one state per phone in the
   # topo file. [note, it really has two states.. the first one is only repeated
@@ -145,6 +147,7 @@ if [ $stage -le 12 ]; then
 fi
 
 if [ $stage -le 13 ]; then
+  printf "\n================ Stage 13 =================\n\n"
   # Get the alignments as lattices (gives the chain training more freedom).
   # use the same num-jobs as the alignments
   steps/align_fmllr_lats.sh --nj $nj --cmd "$train_cmd" ${lores_train_data_dir} \
@@ -153,6 +156,7 @@ if [ $stage -le 13 ]; then
 fi
 
 if [ $stage -le 14 ]; then
+  printf "\n================ Stage 14 =================\n\n"
   # Build a tree using our new topology.  We know we have alignments for the
   # speed-perturbed data (local/nnet3/run_ivector_common.sh made them), so use
   # those.
@@ -169,6 +173,7 @@ fi
 xent_regularize=0.1
 
 if [ $stage -le 15 ]; then
+  printf "\n================ Stage 15 =================\n\n"
   echo "$0: creating neural net configs using the xconfig parser";
 
   num_targets=$(tree-info $tree_dir/tree |grep num-pdfs|awk '{print $2}')
@@ -219,6 +224,7 @@ EOF
 fi
 
 if [ $stage -le 16 ]; then
+  printf "\n================ Stage 16 =================\n\n"
   if [[ $(hostname -f) == *.clsp.jhu.edu ]] && [ ! -d $dir/egs/storage ]; then
     utils/create_split_dir.pl \
      /export/b0{5,6,7,8}/$USER/kaldi-data/egs/ami-$(date +'%m_%d_%H_%M')/s5b/$dir/egs/storage $dir/egs/storage
@@ -248,12 +254,14 @@ if [ $stage -le 16 ]; then
     --feat-dir $train_data_dir \
     --tree-dir $tree_dir \
     --lat-dir $lat_dir \
-    --dir $dir
+    --dir $dir \
+    --use-gpu wait 
 fi
 
 
 graph_dir=$dir/graph_${LM}
 if [ $stage -le 17 ]; then
+  printf "\n================ Stage 17 =================\n\n"
   # Note: it might appear that this data/lang_chain directory is mismatched, and it is as
   # far as the 'topo' is concerned, but this script doesn't read the 'topo' from
   # the lang directory.
@@ -261,6 +269,7 @@ if [ $stage -le 17 ]; then
 fi
 
 if [ $stage -le 18 ]; then
+  printf "\n================ Stage 18 =================\n\n"
   rm $dir/.error 2>/dev/null || true
   for decode_set in dev eval; do
       (

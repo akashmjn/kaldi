@@ -16,8 +16,8 @@
 mic=ihm
 
 # Train systems,
-nj=30 # number of parallel jobs,
-nj_gpu=12 # used to decide total jobs for training. change if running out of GPU memory 
+nj=12 # number of parallel jobs,
+nj_gpu=3 # used to decide total jobs for training. change if running out of GPU memory 
 stage=1
 . utils/parse_options.sh
 
@@ -179,7 +179,7 @@ if [ $stage -le 11 ]; then
   printf "\n================ Stage 11 =================\n\n"
   ali_opt=
   [ "$mic" != "ihm" ] && ali_opt="--use-ihm-ali true"
-  local/chain/run_tdnn.sh $ali_opt --mic $mic --nj_gpu $nj_gpu
+  local/chain/run_tdnn.sh $ali_opt --mic $mic --nj_gpu $nj_gpu 
 fi
 
 if [ $stage -le 12 ]; then
