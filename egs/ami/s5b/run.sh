@@ -179,7 +179,9 @@ if [ $stage -le 11 ]; then
   printf "\n================ Stage 11 =================\n\n"
   ali_opt=
   [ "$mic" != "ihm" ] && ali_opt="--use-ihm-ali true"
-  local/chain/run_tdnn.sh $ali_opt --mic $mic --nj_gpu $nj_gpu 
+  #local/chain/run_tdnn.sh $ali_opt --mic $mic --nj_gpu $nj_gpu 
+  local/nnet3/run_tdnn.sh --mic ihm --train-set train --gmm tri3 --nnet3-affix "" \
+      --nj_gpu $nj_gpu --stage 12 
 fi
 
 if [ $stage -le 12 ]; then
