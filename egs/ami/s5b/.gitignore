@@ -1,0 +1,5 @@
+# Ignoring all log files 
+log
+*.log
+# Ignore temp files in local/akash
+local/akash/*.tmp

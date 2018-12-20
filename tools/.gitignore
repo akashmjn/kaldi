@@ -1,0 +1,4 @@
+# Symlink to use correct python version
+python
+# Temporary log files kept for reference of compilation
+*.log
